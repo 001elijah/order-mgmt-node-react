@@ -1,0 +1,16 @@
+# Backend-specific build artifacts
+/dist
+/build
+
+# Backend-specific logs
+/logs
+
+# Backend-specific test coverage
+/coverage
+/.nyc_output
+
+# Backend-specific cache
+.eslintcache
+
+# Backend-specific runtime data
+/pids
