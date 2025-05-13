@@ -12,6 +12,15 @@ services:
       - ./backend:/app
       - /app/node_modules
 
+  migrations:
+    build: ./backend
+    command: npm run migrate
+    depends_on:
+      db:
+        condition: service_healthy
+    env_file:
+      - ./backend/.env
+
   frontend:
     build: ./frontend
     container_name: order-mgmt-frontend
@@ -35,6 +44,11 @@ services:
       - ./backend/.env
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
 volumes:
   postgres_data:
