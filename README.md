@@ -41,11 +41,17 @@ order-mgmt-node-react/
 │
 ├── views/
 │
+├── db/
+│
+├── models/
+│
+├── tests/
+│
+├── types/
+│
 ├── Dockerfile
 │
-├── .env.development
-│
-├── .env.production
+├── .env
 │
 └── app.js
 ├── frontend/ # React frontend
@@ -70,24 +76,32 @@ cd order-mgmt-node-react
 
 ### Option 1: Running with Docker
 
-The easiest way to run the application is using Docker, which sets up the entire environment including the database.
+The easiest way to run the application is using Docker, which sets up the entire environment, including the database.
 
 #### Production Mode
 
 Run the application in production mode:
 
 ```bash
+NODE_ENV=production #set NODE_ENV .env variable to production
+```
+
+```bash
 docker-compose up
 ```
 
-This uses the `.env.production` configuration by default.
+This uses the `NODE_ENV=development` configuration by default.
 
 #### Development Mode
 
 Run the application in development mode with hot-reloading:
 
 ```bash
-NODE_ENV=development docker-compose up
+NODE_ENV=development #set NODE_ENV .env variable to development
+```
+
+```bash
+docker-compose up
 ```
 
 This setup requires both `.env.production` and `.env.development` files to exist in the backend directory.
@@ -123,16 +137,9 @@ To stop and remove volumes (including database data):
 docker-compose down -v
 ```
 
-
 ### Option 2: Running Locally
 
 For local development without Docker, you'll need to run the frontend, backend, and database separately.
-
-#### Setup the Database
-
-1. Install PostgreSQL
-2. Create a database named `order_mgmt`
-3. Update connection details in backend/.env files
 
 #### Backend Setup
 
@@ -141,7 +148,17 @@ cd backend
 npm install
 ```
 
+#### Setup the Database
+
+```bash
+npm run migrate
+```
+
 #### Start Backend (Production)
+
+```bash
+NODE_ENV=production #set NODE_ENV .env variable to production
+```
 
 ```bash
 cd backend
@@ -149,6 +166,10 @@ npm start
 ```
 
 #### Start Backend (Development with hot-reload)
+
+```bash
+NODE_ENV=development #set NODE_ENV .env variable to development
+```
 
 ```bash
 cd backend
@@ -176,11 +197,9 @@ The application should be accessible at:
 
 ## Environment Variables
 
-The application uses different environment files for development and production:
-
 ### Backend
 
-**Production** (backend/.env):
+**Production example** (backend/.env):
 
 ```
 NODE_ENV=production
@@ -195,7 +214,7 @@ POSTGRES_PORT=5432
 DATABASE_URL=postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}
 ```
 
-**Development** (backend/.env):
+**Development example** (backend/.env):
 
 ```
 NODE_ENV=development
@@ -236,6 +255,80 @@ The frontend is a React application with TypeScript and includes:
 - React hooks for state management
 - TypeScript for type safety
 
+## Api Documentation
+Coming soon...
+
+## Database
+The Order Management System uses PostgreSQL as its primary database.
+### Database Configuration
+PostgreSQL configuration is managed through environment variables:
+``` 
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=postgres
+POSTGRES_DB=order_mgmt
+POSTGRES_HOST=db
+POSTGRES_PORT=5432
+DATABASE_URL=postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}
+```
+### Schema
+
+The database schema includes the following main tables:
+- - User details `users`
+- - Order details and status `orders`
+- - Product catalog `products`
+
+### Database Migrations
+
+Database migrations are managed using the migration script:
+``` bash
+npm run migrate
+```
+
+This creates the necessary tables and initial data for the application.
+
+### Connecting to the Database
+
+#### Using Docker
+
+When running with Docker, the database is accessible within the Docker network:
+- Host: `db`
+- Port: `5432`
+- Database: `order_mgmt`
+
+#### Local Development
+
+For local development, the database connection string should be set to:
+
+``` 
+DATABASE_URL=postgres://postgres:postgres@localhost:5432/order_mgmt
+```
+
+### Database Management
+
+For database administration, you can use:
+- [pgAdmin](https://www.pgadmin.org/) - A web-based PostgreSQL admin tool
+- Command-line tools like `psql`
+
+Example connecting with psql:
+
+``` bash
+psql -h localhost -U postgres -d order_mgmt
+```
+
+### Backup and Restore
+
+To backup the database:
+
+``` bash
+pg_dump -h localhost -U postgres -d order_mgmt > backup.sql
+```
+
+To restore from backup:
+
+``` bash
+psql -h localhost -U postgres -d order_mgmt < backup.sql
+```
+
 ## Testing
 
 The application has a comprehensive testing suite for both backend and frontend components.
@@ -265,3 +358,43 @@ To run frontend tests:
 cd frontend
 npm test
 ```
+
+## Deployment
+
+### Docker-based Deployment
+
+#### Using Docker Compose on VPS (Digital Ocean)
+
+1. **DO Droplet (VPS)** with Docker and Docker Compose installed
+
+2. **Clone the repository and create environment files**
+   ```bash
+   git clone https://github.com/001elijah/order-mgmt-node-react.git
+   cd order-mgmt-node-react
+   ```
+   
+   - Set up .env files for production
+
+3. **Start the application in production mode**
+   ```bash
+   docker-compose up -d
+   ```
+
+4. **Configure NGINX as a reverse proxy**
+
+### CI/CD Pipeline Setup
+
+#### GitHub Actions
+
+Create a workflow file in `.github/workflows/deploy.yml`. Example pipeline setup:
+```bash
+yaml name: Deploy
+on: push: branches: [ main ]
+jobs: test: runs-on: ubuntu-latest steps: - uses: actions/checkout@v3 - name: Run tests run: | cd backend npm install npm test cd ../frontend npm install npm test
+deploy: needs: test runs-on: ubuntu-latest steps: - uses: actions/checkout@v3 - name: Deploy to production # Add deployment steps based on your platform
+latex_unknown_tag
+```
+
+## Troubleshooting
+
+Coming soon...
